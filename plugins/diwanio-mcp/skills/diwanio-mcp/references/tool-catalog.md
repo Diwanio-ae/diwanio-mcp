@@ -48,7 +48,7 @@ List/search/read for evidence and context. Before moving or sending mail, confir
 
 The finance overview widget follows the portable MCP Apps pattern: the tool advertises a UI resource through `_meta.ui.resourceUri`, and the host reads the `text/html;profile=mcp-app` resource. The iframe receives the authoritative result through `ui/notifications/tool-result` and may use `tools/call` for future UI-local refresh actions. Do not make UI-only state or client calculations authoritative.
 
-The packaged server-side source is under `server/`; its `INTEGRATION.md` lists the Laravel file mappings and wiring points.
+The packaged framework-neutral UI source is under `plugins/diwanio-mcp/ui/`; the repository-level `INTEGRATION.md` lists the Laravel wiring points. The external MCP server remains the runtime owner of authentication, tenant scoping, tool execution, and resource delivery.
 
 ## Repository and implementation discovery
 

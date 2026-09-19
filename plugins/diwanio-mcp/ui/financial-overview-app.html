@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Diwanio Financial Overview</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --surface: var(--color-background-primary, #ffffff);
+            --surface-muted: var(--color-background-secondary, #f5f5f5);
+            --text: var(--color-text-primary, #171717);
+            --muted: var(--color-text-secondary, #737373);
+            --border: var(--color-border-primary, #e5e5e5);
+            --positive: #16803c;
+            --warning: #a15c00;
+            --danger: #b42318;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--surface); color: var(--text); }
+        main { max-width: 760px; margin: 0 auto; padding: 18px; }
+        header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+        h1, h2, p { margin: 0; }
+        h1 { font-size: 20px; line-height: 1.25; letter-spacing: -0.02em; }
+        h2 { font-size: 13px; line-height: 1.35; }
+        .subtitle, .timestamp, .empty, .detail { color: var(--muted); font-size: 12px; }
+        .subtitle { margin-top: 5px; }
+        .timestamp { text-align: end; white-space: nowrap; }
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .card { border: 1px solid var(--border); border-radius: 14px; padding: 14px; background: var(--surface); }
+        .metric { margin-top: 7px; font-size: 22px; font-weight: 700; }
+        .metric-label { color: var(--muted); font-size: 11px; }
+        section { margin-top: 14px; }
+        .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+        .row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+        .row:first-child { border-top: 0; }
+        .amount { font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
+        .status { border-radius: 999px; padding: 3px 8px; font-size: 11px; background: var(--surface-muted); }
+        .status.good { color: var(--positive); }
+        .status.warning { color: var(--warning); }
+        .status.danger, .error { color: var(--danger); }
+        .error { font-size: 13px; }
+        @media (max-width: 480px) {
+            main { padding: 14px; }
+            header { display: block; }
+            .timestamp { margin-top: 8px; text-align: start; }
+        }
+    </style>
+</head>
+<body>
+    <main id="financial-overview" aria-live="polite" aria-busy="true">
+        <p class="empty" data-loading>Loading financial overview…</p>
+    </main>
+    <script>
+        (() => {
+            'use strict';
+
+            const root = document.getElementById('financial-overview');
+            const messages = {
+                en: {
+                    title: 'Financial overview',
+                    subtitle: 'Authoritative snapshot for the active workspace.',
+                    loading: 'Loading financial overview…',
+                    unavailable: 'Financial overview is unavailable.',
+                    noAccounts: 'No bank accounts are available.',
+                    bankAccount: 'Bank account',
+                    openInvoices: 'Open invoices',
+                    expenses: 'Expenses',
+                    pendingBank: 'Pending bank transactions',
+                    periodReadiness: 'Period readiness',
+                    cashHeading: 'Cash by account',
+                    ready: 'Ready',
+                    blocked: 'Blocked',
+                },
+                ar: {
+                    title: 'نظرة مالية',
+                    subtitle: 'لقطة موثوقة لمساحة العمل النشطة.',
+                    loading: 'جارٍ تحميل النظرة المالية…',
+                    unavailable: 'النظرة المالية غير متاحة.',
+                    noAccounts: 'لا توجد حسابات بنكية متاحة.',
+                    bankAccount: 'حساب بنكي',
+                    openInvoices: 'الفواتير المفتوحة',
+                    expenses: 'المصروفات',
+                    pendingBank: 'المعاملات البنكية المعلقة',
+                    periodReadiness: 'جاهزية الفترة',
+                    cashHeading: 'النقد حسب الحساب',
+                    ready: 'جاهزة',
+                    blocked: 'محظورة',
+                },
+            };
+
+            const locale = (document.documentElement.lang || navigator.language || 'en').toLowerCase().startsWith('ar') ? 'ar' : 'en';
+            const localeTag = locale === 'ar' ? 'ar-AE' : 'en-AE';
+            const t = (key) => messages[locale][key] || messages.en[key] || key;
+            document.documentElement.lang = locale;
+            document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+
+            const pendingRequests = new Map();
+            let nextRequestId = 1;
+
+            const request = (method, params = {}) => {
+                const id = nextRequestId++;
+                window.parent.postMessage({ jsonrpc: '2.0', id, method, params }, '*');
+
+                return new Promise((resolve, reject) => {
+                    pendingRequests.set(id, { resolve, reject });
+                });
+            };
+
+            const notify = (method, params = {}) => {
+                window.parent.postMessage({ jsonrpc: '2.0', method, params }, '*');
+            };
+
+            const element = (tag, className, text) => {
+                const node = document.createElement(tag);
+                if (className) node.className = className;
+                if (text !== undefined) node.textContent = String(text);
+                return node;
+            };
+
+            const formatAmount = (minor, currency) => {
+                const numeric = Number(minor ?? 0) / 100;
+                const amount = Number.isFinite(numeric)
+                    ? numeric.toLocaleString(localeTag, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : '0.00';
+
+                return `${String(currency || '')} ${amount}`.trim();
+            };
+
+            const formatTimestamp = (value) => {
+                if (!value) return '';
+                const date = new Date(value);
+                return Number.isNaN(date.getTime())
+                    ? String(value)
+                    : date.toLocaleString(localeTag, { dateStyle: 'medium', timeStyle: 'short' });
+            };
+
+            const renderLoading = () => {
+                root.replaceChildren(element('p', 'empty', t('loading')));
+                root.setAttribute('aria-busy', 'true');
+            };
+
+            const renderError = () => {
+                root.replaceChildren(element('p', 'error', t('unavailable')));
+                root.setAttribute('aria-busy', 'false');
+            };
+
+            const renderMetric = (label, value) => {
+                const card = element('article', 'card');
+                card.append(element('div', 'metric-label', label), element('div', 'metric', value));
+                return card;
+            };
+
+            const render = (data) => {
+                if (!data || typeof data !== 'object') {
+                    renderError();
+                    return;
+                }
+
+                const workspaceName = data.workspace?.name || t('title');
+                const readiness = data.readiness && typeof data.readiness === 'object' ? data.readiness : {};
+                const blocked = readiness.ready === false || readiness.status === 'blocked';
+                const cash = Array.isArray(data.cash) ? data.cash : [];
+
+                const header = element('header');
+                const heading = element('div');
+                heading.append(element('h1', '', workspaceName), element('p', 'subtitle', t('subtitle')));
+                header.append(heading, element('p', 'timestamp', formatTimestamp(data.generated_at)));
+
+                const grid = element('div', 'grid');
+                grid.append(
+                    renderMetric(t('openInvoices'), data.invoices?.open_count ?? 0),
+                    renderMetric(t('expenses'), data.expenses?.count ?? 0),
+                    renderMetric(t('pendingBank'), data.pending_bank_transactions ?? 0),
+                );
+
+                const readinessCard = renderMetric(t('periodReadiness'), '');
+                const readinessMetric = readinessCard.querySelector('.metric');
+                readinessMetric.append(element('span', `status ${blocked ? 'danger' : 'good'}`, blocked ? t('blocked') : t('ready')));
+                grid.append(readinessCard);
+
+                const cashSection = element('section', 'card');
+                const sectionHeading = element('div', 'section-heading');
+                sectionHeading.append(element('h2', '', t('cashHeading')), element('span', 'detail', data.period?.status || ''));
+                cashSection.append(sectionHeading);
+
+                if (cash.length === 0) {
+                    cashSection.append(element('p', 'empty', t('noAccounts')));
+                } else {
+                    cash.forEach((account) => {
+                        const row = element('div', 'row');
+                        const details = element('div');
+                        details.append(
+                            element('strong', '', account.name || t('bankAccount')),
+                            element('div', 'detail', account.status || ''),
+                        );
+                        const amount = element('span', 'amount', formatAmount(account.balance_minor, account.currency));
+                        amount.dir = 'ltr';
+                        row.append(details, amount);
+                        cashSection.append(row);
+                    });
+                }
+
+                root.replaceChildren(header, grid, cashSection);
+                root.setAttribute('aria-busy', 'false');
+            };
+
+            window.addEventListener('message', (event) => {
+                if (event.source !== window.parent) return;
+                const message = event.data;
+                if (!message || message.jsonrpc !== '2.0') return;
+
+                if (message.id !== undefined && pendingRequests.has(message.id)) {
+                    const pending = pendingRequests.get(message.id);
+                    pendingRequests.delete(message.id);
+                    if (message.error) pending.reject(message.error);
+                    else pending.resolve(message.result);
+                    return;
+                }
+
+                if (message.method === 'ui/notifications/tool-result') {
+                    render(message.params?.structuredContent ?? message.params);
+                }
+            }, { passive: true });
+
+            renderLoading();
+
+            request('ui/initialize', {
+                protocolVersion: '2025-06-18',
+                capabilities: {},
+                clientInfo: { name: 'diwanio-financial-overview', version: '1.0.0' },
+            })
+                .then(() => notify('ui/notifications/initialized'))
+                .catch(() => undefined);
+
+            const openaiOutput = window.openai?.toolOutput;
+            if (openaiOutput) render(openaiOutput.structuredContent ?? openaiOutput);
+        })();
+    </script>
+</body>
+</html>

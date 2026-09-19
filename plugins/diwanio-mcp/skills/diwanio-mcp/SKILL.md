@@ -27,6 +27,6 @@ For a finance review, a useful sequence is: establish tenant/workspace context, 
 
 When the MCP host supports MCP Apps, `GetFinancialOverview` also returns the `FinancialOverviewApp` UI resource. Treat the widget as a presentation of the tool result, not a second source of truth; the structured result remains authoritative and must remain usable when the host does not render UI. The app uses the shared `ui/*` bridge and host CSS variables so the same resource can run in ChatGPT, Codex, and other MCP Apps-compatible hosts.
 
-The GitHub-ready package keeps the server-side UI source under `server/`. Read `server/INTEGRATION.md` when installing the UI into a Laravel MCP server. Do not claim the plugin serves the UI by itself unless its MCP server connection is also configured and reachable.
+The GitHub-ready package keeps the framework-neutral UI source under `plugins/diwanio-mcp/ui/`. Read the repository-level `INTEGRATION.md` when installing the UI into the separately hosted Laravel MCP server. Do not claim the plugin serves the UI by itself unless its MCP server connection is also configured and reachable.
 
 For a draft request, validate required fields before calling the draft tool, show the proposed financial effect in the correct currency, obtain explicit confirmation for that exact action, call the appropriate draft tool, and stop at the returned review/approval boundary.
