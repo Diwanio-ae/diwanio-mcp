@@ -1,10 +1,16 @@
 # Diwanio MCP integration
 
-This repository packages the plugin metadata, finance skill, tool catalog, branding, and portable MCP App UI source. It does not replace the separately hosted Diwanio MCP server and does not contain Laravel or Blade runtime code.
+This repository packages the plugin metadata, finance skill, tool catalog, branding, portable MCP App UI source, and the connection definition for the separately hosted Diwanio MCP server. It does not contain Laravel or Blade runtime code.
 
 ## Connect the existing MCP server
 
-Configure the externally hosted Diwanio MCP endpoint for the target Codex, ChatGPT, or other MCP Apps host. Do not add credentials or invent an endpoint URL in this repository.
+The portable `mcp.json` configures the external Streamable HTTP endpoint:
+
+```text
+https://diwanio.ae/mcp/diwanio
+```
+
+The package does not contain credentials. Authentication and tenant access remain enforced by the Diwanio server and the host's MCP connection flow.
 
 The server remains responsible for authentication, tenant resolution, billing gates, tool execution, and authoritative `structuredContent` responses.
 
