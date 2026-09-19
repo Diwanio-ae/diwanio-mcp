@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "diwanio-mcp",
+  "version": "0.1.0",
+  "description": "Tenant-safe Diwanio MCP finance tools with an optional MCP Apps financial overview UI for ChatGPT and Codex.",
+  "author": {
+    "name": "Diwanio"
+  },
+  "repository": "https://github.com/Diwanio-ae/diwanio-mcp",
+  "keywords": ["finance", "accounting", "uae", "mcp", "diwanio"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Diwanio MCP",
+        "shortDescription": "Use Diwanio finance MCP tools safely.",
+        "longDescription": "Diwanio MCP provides tenant-scoped financial reviews, draft preparation, accounting-aware result handling, connected Diwanio workspace tools, and the server-side FinancialOverviewApp UI source.",
+        "developerName": "Diwanio",
+        "category": "Finance",
+        "capabilities": [],
+        "defaultPrompt": [
+          "Use Diwanio MCP to answer or act on Diwanio finance data safely."
+        ],
+        "brandColor": "#BB9C5C",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png"
+      }
+    }
+  }
+}
