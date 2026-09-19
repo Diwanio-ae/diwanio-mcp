@@ -1,0 +1,18 @@
+{
+  "name": "diwanio-mcp",
+  "version": "0.1.0",
+  "description": "Tenant-safe Diwanio MCP finance tools with an optional MCP Apps financial overview UI for ChatGPT and Codex.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Diwanio MCP",
+    "shortDescription": "Use Diwanio finance MCP tools safely.",
+    "longDescription": "Diwanio MCP provides tenant-scoped financial reviews, draft preparation, accounting-aware result handling, connected Diwanio workspace tools, and the server-side FinancialOverviewApp UI source.",
+    "developerName": "Local developer",
+    "category": "Finance",
+    "capabilities": [],
+    "defaultPrompt": "Use $diwanio-mcp to answer or act on Diwanio finance data with tenant-safe MCP workflows."
+  }
+}

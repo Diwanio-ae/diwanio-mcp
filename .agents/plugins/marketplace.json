@@ -1,0 +1,20 @@
+{
+  "name": "diwanio-plugins",
+  "interface": {
+    "displayName": "Diwanio Plugins"
+  },
+  "plugins": [
+    {
+      "name": "diwanio-mcp",
+      "source": {
+        "source": "local",
+        "path": "./plugins/diwanio-mcp"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Finance"
+    }
+  ]
+}
