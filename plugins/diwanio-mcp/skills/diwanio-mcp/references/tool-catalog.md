@@ -4,6 +4,12 @@ This catalog describes the finance MCP tools indexed in `diwanio-laravel/app/Mcp
 
 ## Tenant-scoped finance tools
 
+The transport requires an OAuth 2.1 bearer token with the mcp:use scope.
+Every tool advertises the same OAuth security scheme, and the server enforces
+the scope before dispatch. GetProfile is the authenticated account-linking tool
+and marks its output with _meta["openai/profile"] = true. Its empty input
+returns a stable opaque profile ID, display name, and email.
+
 | Tool | Mode | Use | Important inputs/outputs |
 |---|---|---|---|
 | `GetFinancialOverview` | Read-only + optional MCP App UI | One-pass workspace financial health review | Returns open invoices by currency, expenses by currency, cash by account, count of unreviewed bank transactions, active accounting period, and readiness data. No inputs. When supported, renders `ui://resources/financial-overview-app`; structured content remains authoritative. |

@@ -14,6 +14,26 @@ The package does not contain credentials. Authentication and tenant access remai
 
 The server remains responsible for authentication, tenant resolution, billing gates, tool execution, and authoritative `structuredContent` responses.
 
+## Add the authentication phase
+
+The server must complete OAuth before exposing customer-specific finance data:
+
+1. Return 401 Unauthorized from the MCP transport with a WWW-Authenticate
+   challenge pointing to the endpoint-specific protected resource metadata.
+2. Publish protected-resource metadata and authorization-server metadata under
+   the nested .well-known URLs for /mcp/diwanio.
+3. Advertise OAuth 2.1 authorization-code + PKCE (S256) and the mcp:use scope.
+4. Add securitySchemes with the oauth2 type and mcp:use scope to every tool,
+   and enforce that scope at the transport boundary.
+5. Expose an authenticated profile tool with _meta["openai/profile"] = true
+   when the host supports account linking.
+
+The Laravel implementation uses Passport as the OAuth resource server and
+keeps Passport keys in the deployment secret store. Do not add credentials to
+mcp.json; the package only declares the remote URL. See
+[AUTHENTICATION.md](AUTHENTICATION.md) for the complete contract and production
+verification checklist.
+
 ## Install the FinancialOverviewApp UI in Laravel
 
 The portable UI source is `plugins/diwanio-mcp/ui/financial-overview-app.html`. Copy it to the Laravel server as `resources/mcp/financial-overview-app.html`, then expose it with a Laravel MCP `AppResource`:

@@ -13,6 +13,8 @@
   ·
   <a href="INTEGRATION.md">Integration guide</a>
   ·
+  <a href="AUTHENTICATION.md">Authentication</a>
+  ·
   <a href="https://github.com/Diwanio-ae/diwanio-mcp">Repository</a>
 </p>
 
@@ -30,6 +32,7 @@ The production MCP server remains separately hosted at [`https://diwanio.ae/mcp/
 - Connected Diwanio Webmail tools for evidence gathering and explicitly requested mail actions.
 - A self-contained financial overview UI using standard HTML, CSS, and JavaScript.
 - Portable package structure suitable for Codex and ChatGPT, with a framework-neutral UI that can be adapted to other MCP Apps hosts.
+- OAuth 2.1 authorization-code + PKCE authentication owned by the separately hosted MCP server.
 
 ## Connect the plugin
 
@@ -48,12 +51,26 @@ The package connection is declared in [`plugins/diwanio-mcp/mcp.json`](plugins/d
 
 No credentials are stored in this repository. The host and the Diwanio server handle authentication and access to the connected workspace.
 
+## Authentication
+
+The server requires an authenticated OAuth connection before returning
+customer-specific finance data or executing tools. The host follows the
+server's 401 WWW-Authenticate challenge, discovers the protected-resource and
+authorization-server metadata, completes OAuth 2.1 authorization-code
+authentication with PKCE (S256) and the mcp:use scope, then reconnects with the
+bearer token.
+
+Authentication is server-owned and is not configured by adding credentials to
+mcp.json. See [AUTHENTICATION.md](AUTHENTICATION.md) for the complete handshake,
+discovery URLs, package/server boundary, and deployment checks.
+
 ## Finance tool surface
 
 ### Read-only tools
 
 | Tool | Purpose |
 | --- | --- |
+| GetProfile | Identify the authenticated Diwanio account for host connection linking. |
 | `GetFinancialOverview` | Review open invoices, expenses, cash, unreviewed bank transactions, the active accounting period, and readiness data. |
 | `GetCashPosition` | Inspect current cash by bank account and currency. |
 | `GetTaxStatus` | Review VAT and corporate tax registration and workpaper status. |
@@ -116,4 +133,3 @@ The UI is intentionally dependency-free, so no JavaScript build step is required
 ## Repository boundary
 
 This repository distributes the plugin package and UI source. It does not proxy, deploy, or replace the separately hosted MCP server, and it contains no server credentials or Laravel runtime implementation.
-

@@ -9,6 +9,8 @@ Use this skill when the user asks to inspect or prepare Diwanio financial data t
 
 ## Operating rules
 
+- Authenticate before reading customer-specific finance data or preparing drafts. Let the MCP host complete the OAuth flow; never ask the user for an access token, client secret, or private key.
+- Treat a 401 WWW-Authenticate challenge as the authentication boundary. Do not retry guessed credentials or tenant IDs; use the authenticated profile and active workspace supplied by the server.
 - Treat the active workspace/team as the tenant boundary. Never combine records across tenants, infer a tenant from a later user preference, or expose raw identifiers or tax data from another workspace.
 - Prefer read-only finance tools for analysis. A draft tool may prepare an unposted record, but it must not be described as posted, issued, sent, paid, reconciled, or filed.
 - Draft creation requires the exact explicit confirmation token defined by the tool. Do not invent or silently reuse confirmation. After a draft response, report its `record_id`, `trace_id`, approval requirement, and the required Diwanio review step.
@@ -20,6 +22,8 @@ Use this skill when the user asks to inspect or prepare Diwanio financial data t
 ## Tool routing
 
 Read [references/tool-catalog.md](references/tool-catalog.md) when choosing a Diwanio tool, checking its input contract, or explaining what a result proves. The catalog is a snapshot of the indexed Laravel implementation and connected app tools; refresh it from the live tool schema/source when available instead of assuming it is current.
+
+Read the repository-level [authentication contract](../../../../AUTHENTICATION.md) when the host reports an authorization challenge or when explaining how this package connects to Diwanio. The package points to the server; it does not store or exchange credentials.
 
 For repository discovery or implementation work, use the codebase-memory MCP tools first: `search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `search_code`, and `get_architecture`. If the project is not indexed, run `index_repository` before discovery.
 
